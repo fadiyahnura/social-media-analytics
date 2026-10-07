@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Social Media Analytics Dashboard | Portfolio</title>
+  <meta name="description" content="Real-time social media engagement analytics across Instagram, TikTok, Twitter, YouTube, and LinkedIn." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg-base:       #0e0f14;
+      --bg-surface:    #13151d;
+      --bg-card:       #181b26;
+      --bg-card-hover: #1e2235;
+      --border:        rgba(255,255,255,0.07);
+      --border-hover:  rgba(255,255,255,0.13);
+
+      --c-teal:   #2dd4bf;
+      --c-amber:  #f59e0b;
+      --c-rose:   #fb7185;
+      --c-indigo: #818cf8;
+      --c-lime:   #a3e635;
+      --c-slate:  #94a3b8;
+
+      --text-primary:   #eef0f6;
+      --text-secondary: #9aa3b8;
+      --text-muted:     #4a5168;
+
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --shadow-card: 0 2px 20px rgba(0,0,0,0.35);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 15% 0%, rgba(45,212,191,0.05) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 85% 85%, rgba(245,158,11,0.04) 0%, transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(14,15,20,0.82);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: -0.01em;
+    }
+
+    .nav-brand .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--c-teal);
+      box-shadow: 0 0 8px var(--c-teal);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: rgba(45,212,191,0.08);
+      border: 1px solid rgba(45,212,191,0.2);
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--c-teal);
+      letter-spacing: 0.04em;
+    }
+
+    .live-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--c-teal);
+      animation: livepulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes livepulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.3; transform: scale(0.7); }
+    }
+
+    .nav-time {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .hero { padding: 52px 0 36px; }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--c-teal);
+      margin-bottom: 18px;
+      letter-spacing: 0.03em;
+    }
+
+    .hero-tag::before {
+      content: '';
+      width: 20px;
+      height: 1px;
+      background: var(--c-teal);
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(2rem, 4.5vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.18;
+      margin-bottom: 14px;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--c-teal);
+    }
+
+    .hero p {
+      color: var(--text-secondary);
+      font-size: 0.97rem;
+      max-width: 500px;
+      margin-bottom: 28px;
+      line-height: 1.75;
+      font-weight: 400;
+    }
+
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .hero-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+
+    .hero-meta-item strong { color: var(--text-secondary); font-weight: 500; }
+
+    .last-updated {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 16px 0 28px;
+    }
+
+    .filter-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+
+    .filter-btn {
+      padding: 6px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--border-hover);
+      color: var(--text-primary);
+      background: var(--bg-card);
+    }
+
+    .filter-btn.active {
+      background: var(--c-teal);
+      border-color: var(--c-teal);
+      color: #0e0f14;
+      font-weight: 600;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px 22px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .kpi-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: var(--accent, var(--c-teal));
+      opacity: 0.5;
+    }
+
+    .kpi-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 10px;
+    }
+
+    .kpi-value {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.85rem;
+      font-weight: 500;
+      line-height: 1;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+      transition: color 0.3s ease;
+    }
+
+    .kpi-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .kpi-change.up   { color: #4ade80; background: rgba(74,222,128,0.1); }
+    .kpi-change.down { color: #f87171; background: rgba(248,113,113,0.1); }
+
+    .chart-grid { display: grid; gap: 18px; margin-bottom: 26px; }
+    .chart-grid-2 { grid-template-columns: 1fr 1fr; }
+    .chart-grid-3 { grid-template-columns: 2fr 1fr; }
+
+    @media (max-width: 860px) {
+      .chart-grid-2, .chart-grid-3 { grid-template-columns: 1fr; }
+    }
+
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 26px;
+      box-shadow: var(--shadow-card);
+      transition: border-color 0.2s ease;
+    }
+
+    .chart-card:hover { border-color: var(--border-hover); }
+
+    .chart-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 22px;
+      gap: 10px;
+    }
+
+    .chart-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 3px;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .chart-subtitle { font-size: 0.75rem; color: var(--text-muted); }
+
+    .chart-badge {
+      padding: 3px 9px;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      white-space: nowrap;
+      letter-spacing: 0.03em;
+    }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 26px;
+    }
+
+    .platform-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .platform-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+
+    .platform-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .platform-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .platform-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    .platform-er {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .platform-er-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .progress-bar {
+      height: 3px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 1s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    .table-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 26px;
+    }
+
+    .table-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead th {
+      padding: 10px 18px;
+      text-align: left;
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.015);
+    }
+
+    tbody tr { transition: background 0.12s ease; }
+    tbody tr:hover { background: rgba(255,255,255,0.025); }
+
+    tbody td {
+      padding: 13px 18px;
+      font-size: 0.83rem;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      color: var(--text-secondary);
+    }
+
+    tbody td:first-child { color: var(--text-muted); font-family: 'DM Mono', monospace; font-size: 0.72rem; }
+
+    .er-pill { display: inline-block; padding: 2px 9px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; font-family: 'DM Mono', monospace; }
+    .er-high { background: rgba(74,222,128,0.1);  color: #4ade80; }
+    .er-mid  { background: rgba(251,191,36,0.1);  color: #fbbf24; }
+    .er-low  { background: rgba(248,113,113,0.1); color: #f87171; }
+
+    .insight-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-bottom: 48px;
+    }
+
+    .insight-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      display: flex;
+      gap: 14px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .insight-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+
+    .insight-num {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--c-teal);
+      opacity: 0.45;
+      flex-shrink: 0;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .insight-title { font-weight: 600; font-size: 0.85rem; margin-bottom: 5px; }
+    .insight-text  { font-size: 0.77rem; color: var(--text-muted); line-height: 1.65; }
+
+    .section-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    footer a { color: var(--c-teal); text-decoration: none; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate { animation: fadeUp 0.45s ease both; }
+    .d1 { animation-delay: 0.06s; }
+    .d2 { animation-delay: 0.12s; }
+    .d3 { animation-delay: 0.18s; }
+    .d4 { animation-delay: 0.24s; }
+    .d5 { animation-delay: 0.30s; }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+
+    .divider { height: 1px; background: var(--border); margin: 4px 0 26px; }
+
+    @keyframes flash {
+      0%   { color: var(--c-teal); }
+      100% { color: var(--text-primary); }
+    }
+    .kpi-flash { animation: flash 0.6s ease; }
+  </style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <div class="nav-brand">
+      <div class="dot"></div>
+      SocialMetrics
+    </div>
+    <div class="nav-right">
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        Live Feed
+      </div>
+      <span class="nav-time" id="nav-clock">--:--:--</span>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <div class="container">
+
+    <section class="hero animate">
+      <div class="hero-tag">Engagement Rate Analysis · 2025</div>
+      <h1>Social Media<br /><em>Analytics</em> Dashboard</h1>
+      <p>Real-time engagement metrics across 5 major platforms — tracking what resonates with audiences and when.</p>
+      <div class="hero-meta">
+        <div class="hero-meta-item"><strong>Jan – Oct 2025</strong></div>
+        <div class="hero-meta-item"><strong>500 Posts</strong> analyzed</div>
+        <div class="hero-meta-item"><strong>5 Platforms</strong></div>
+        <div class="hero-meta-item"><strong>ER Focus</strong></div>
+      </div>
+      <div class="last-updated" id="last-updated">Last updated: just now</div>
+    </section>
+
+    <div class="filter-bar animate d1">
+      <span class="filter-label">Platform</span>
+      <button class="filter-btn active" id="btn-all"       onclick="filterPlatform('All')">All</button>
+      <button class="filter-btn"        id="btn-instagram" onclick="filterPlatform('Instagram')">Instagram</button>
+      <button class="filter-btn"        id="btn-tiktok"    onclick="filterPlatform('TikTok')">TikTok</button>
+      <button class="filter-btn"        id="btn-twitter"   onclick="filterPlatform('Twitter')">Twitter</button>
+      <button class="filter-btn"        id="btn-youtube"   onclick="filterPlatform('YouTube')">YouTube</button>
+      <button class="filter-btn"        id="btn-linkedin"  onclick="filterPlatform('LinkedIn')">LinkedIn</button>
+    </div>
+
+    <!-- KPI -->
+    <div class="kpi-grid animate d2">
+      <div class="kpi-card" style="--accent:var(--c-teal)">
+        <div class="kpi-label">Total Posts</div>
+        <div class="kpi-value" id="kpi-posts">500</div>
+        <div class="kpi-change up">&#x2191; 23% YoY</div>
+      </div>
+      <div class="kpi-card" style="--accent:var(--c-rose)">
+        <div class="kpi-label">Avg Engagement Rate</div>
+        <div class="kpi-value" id="kpi-engagement">--</div>
+        <div class="kpi-change up">&#x2191; 0.4% vs prev</div>
+      </div>
+      <div class="kpi-card" style="--accent:var(--c-indigo)">
+        <div class="kpi-label">Total Reach</div>
+        <div class="kpi-value" id="kpi-reach">--</div>
+        <div class="kpi-change up">&#x2191; 18% YoY</div>
+      </div>
+      <div class="kpi-card" style="--accent:var(--c-lime)">
+        <div class="kpi-label">Total Likes</div>
+        <div class="kpi-value" id="kpi-likes">--</div>
+        <div class="kpi-change up">&#x2191; 31% YoY</div>
+      </div>
+      <div class="kpi-card" style="--accent:var(--c-amber)">
+        <div class="kpi-label">Total Comments</div>
+        <div class="kpi-value" id="kpi-comments">--</div>
+        <div class="kpi-change down">&#x2193; 5% vs prev</div>
+      </div>
+    </div>
+
+    <!-- Platform Performance -->
+    <div class="section-title animate d2">Platform Performance</div>
+    <div class="platform-grid animate d2" id="platform-grid"></div>
+
+    <div class="divider"></div>
+
+    <!-- Charts Row 1 -->
+    <div class="chart-grid chart-grid-3 animate d3">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Engagement Rate Trend</div>
+            <div class="chart-subtitle">Monthly average ER by platform</div>
+          </div>
+          <span class="chart-badge" style="background:rgba(45,212,191,0.1);color:var(--c-teal);">2025</span>
+        </div>
+        <div style="position:relative;height:250px;"><canvas id="chartTimeline"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Posts by Platform</div>
+            <div class="chart-subtitle">Content distribution</div>
+          </div>
+        </div>
+        <div style="position:relative;height:250px;"><canvas id="chartDonut"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="chart-grid chart-grid-2 animate d3">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">ER by Content Type</div>
+            <div class="chart-subtitle">Which format performs best</div>
+          </div>
+          <span class="chart-badge" style="background:rgba(163,230,53,0.1);color:var(--c-lime);">Avg ER %</span>
+        </div>
+        <div style="position:relative;height:230px;"><canvas id="chartContentType"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">Best Day to Post</div>
+            <div class="chart-subtitle">Average ER by day of week</div>
+          </div>
+          <span class="chart-badge" style="background:rgba(245,158,11,0.1);color:var(--c-amber);">Heatmap</span>
+        </div>
+        <div style="position:relative;height:230px;"><canvas id="chartDayOfWeek"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Charts Row 3 -->
+    <div class="chart-grid animate d4">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">ER by Content Category</div>
+            <div class="chart-subtitle">Performance across different themes</div>
+          </div>
+          <span class="chart-badge" style="background:rgba(251,113,133,0.1);color:var(--c-rose);">Categories</span>
+        </div>
+        <div style="position:relative;height:210px;"><canvas id="chartCategory"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Top Posts -->
+    <div class="table-card animate d4">
+      <div class="table-header">
+        <div>
+          <div class="chart-title">Top Performing Posts</div>
+          <div class="chart-subtitle">Highest engagement rate across all platforms</div>
+        </div>
+        <span class="chart-badge" style="background:rgba(129,140,248,0.1);color:var(--c-indigo);">Top 10</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Post ID</th><th>Platform</th><th>Type</th>
+              <th>Category</th><th>Day</th><th>Reach</th><th>Likes</th>
+              <th>Comments</th><th>ER</th>
+            </tr>
+          </thead>
+          <tbody id="top-posts-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Key Insights -->
+    <div class="section-title animate d4">Key Insights</div>
+    <div class="insight-grid animate d5">
+      <div class="insight-card">
+        <div class="insight-num">01</div>
+        <div>
+          <div class="insight-title">TikTok Dominates Engagement</div>
+          <div class="insight-text">TikTok consistently delivers 2-3x higher engagement rates, driven by algorithmic reach and short-form video format.</div>
+        </div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-num">02</div>
+        <div>
+          <div class="insight-title">Video Beats Static Content</div>
+          <div class="insight-text">Video and Reel formats outperform static images with up to 40% higher engagement rates across all platforms.</div>
+        </div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-num">03</div>
+        <div>
+          <div class="insight-title">Thursday is the Sweet Spot</div>
+          <div class="insight-text">Posts on Thursday show the highest average ER, especially in the 18:00-21:00 window when audiences are most active.</div>
+        </div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-num">04</div>
+        <div>
+          <div class="insight-title">Educational Content Wins</div>
+          <div class="insight-text">Tutorial-style posts generate 25-35% more comments and saves than promotional content, boosting overall ER.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <p>Built with <strong>HTML, CSS &amp; JavaScript</strong> &middot; Dataset: <strong>Simulated Social Media Data (500 posts, 2025)</strong></p>
+    <p style="margin-top:6px;">Portfolio Project &middot; Data Analyst &middot; Skills: Analysis &middot; Visualization &middot; Dashboard Design</p>
+  </div>
+</footer>
+
+<script>
+// ── SEEDED RNG ─────────────────────────────────────────────
+function mulberry32(a) {
+  return function() {
+    var t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const rng = mulberry32(42);
+const randItem  = function(arr) { return arr[Math.floor(rng() * arr.length)]; };
+const randRange = function(a,b) { return a + rng()*(b-a); };
+const randInt   = function(a,b) { return Math.floor(randRange(a, b+1)); };
+
+// ── CONSTANTS ──────────────────────────────────────────────
+const PLATFORMS    = ["Instagram","TikTok","Twitter","YouTube","LinkedIn"];
+const DAYS         = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct"];
+const CATEGORIES   = ["Product","Educational","Entertainment","Behind The Scene","Promotion","User Generated Content"];
+
+const PLATFORM_COLORS = {
+  Instagram:"#e1306c", TikTok:"#2dd4bf", Twitter:"#60a5fa",
+  YouTube:"#f87171", LinkedIn:"#818cf8"
+};
+
+const PLATFORM_CONFIG = {
+  Instagram:{ followers:52000, growth:0.018, reach_pct:0.13, types:["Image","Carousel","Reel","Story"],     peak_days:[1,3,5],     peak_hours:[8,12,18,21]  },
+  TikTok:   { followers:98000, growth:0.035, reach_pct:0.38, types:["Video","Story"],                       peak_days:[1,2,3,4,5], peak_hours:[17,19,21,23] },
+  Twitter:  { followers:21000, growth:0.009, reach_pct:0.05, types:["Text","Image"],                        peak_days:[0,1,2,3,4], peak_hours:[7,9,12,17]   },
+  YouTube:  { followers:36000, growth:0.014, reach_pct:0.09, types:["Video"],                               peak_days:[5,6],       peak_hours:[14,16,20]    },
+  LinkedIn: { followers:11500, growth:0.022, reach_pct:0.07, types:["Text","Image","Carousel"],             peak_days:[0,1,2,3,4], peak_hours:[8,10,12]     }
+};
+
+// ── GENERATE DATASET ───────────────────────────────────────
+function generateDataset() {
+  var posts = [];
+  var id = 1;
+  for (var pi = 0; pi < PLATFORMS.length; pi++) {
+    var platform = PLATFORMS[pi];
+    var cfg = PLATFORM_CONFIG[platform];
+    for (var i = 0; i < 100; i++) {
+      var dayOfYear   = randInt(0, 299);
+      var month_num   = Math.min(Math.floor(dayOfYear / 30.4) + 1, 10);
+      var dayOfWeek   = randInt(0, 6);
+      var hour        = randInt(0, 23);
+      var followers   = Math.round(cfg.followers * (1 + cfg.growth * dayOfYear / 30));
+      var isPeak      = cfg.peak_days.indexOf(dayOfWeek) >= 0 ? 1.35 : 1.0;
+      var isHour      = cfg.peak_hours.indexOf(hour)     >= 0 ? 1.30 : 1.0;
+      var mult        = isPeak * isHour * randRange(0.6, 2.5);
+      var reach       = Math.round(followers * cfg.reach_pct * mult);
+      var content_type = randItem(cfg.types);
+      var category    = randItem(CATEGORIES);
+      var likes       = Math.round(reach * randRange(0.03, 0.15) * mult);
+      var comments    = Math.round(reach * randRange(0.005, 0.03) * mult);
+      var shares      = Math.round(reach * randRange(0.002, 0.015) * mult);
+      var saves       = Math.round(reach * randRange(0.01, 0.05) * mult);
+      var total_eng   = likes + comments + shares + saves;
+      var er          = parseFloat(((total_eng / followers) * 100).toFixed(2));
+      posts.push({
+        post_id: 'P' + String(id).padStart(4,'0'),
+        platform: platform, content_type: content_type, category: category,
+        month_num: month_num, day_of_week: DAYS[dayOfWeek], day_num: dayOfWeek,
+        hour: hour, followers_at_post: followers,
+        reach: reach, likes: likes, comments: comments, shares: shares, saves: saves,
+        total_eng: total_eng, engagement_rate: er
+      });
+      id++;
+    }
+  }
+  return posts;
+}
+
+var ALL_POSTS = generateDataset();
+var FILTERED  = ALL_POSTS.slice();
+
+// ── HELPERS ────────────────────────────────────────────────
+function avgField(arr, k) {
+  if (!arr.length) return 0;
+  return arr.reduce(function(s,p) { return s + p[k]; }, 0) / arr.length;
+}
+function sumField(arr, k) { return arr.reduce(function(s,p) { return s + p[k]; }, 0); }
+function fmtNum(n) {
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return String(n);
+}
+
+// ── LIVE CLOCK ─────────────────────────────────────────────
+function updateClock() {
+  var now = new Date();
+  var h = String(now.getHours()).padStart(2,'0');
+  var m = String(now.getMinutes()).padStart(2,'0');
+  var s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('nav-clock').textContent = h + ':' + m + ':' + s;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── LAST UPDATED ───────────────────────────────────────────
+var secondsSinceUpdate = 0;
+function setLastUpdated() { secondsSinceUpdate = 0; }
+setInterval(function() {
+  secondsSinceUpdate++;
+  var el = document.getElementById('last-updated');
+  if (secondsSinceUpdate < 5)  el.textContent = 'Last updated: just now';
+  else if (secondsSinceUpdate < 60) el.textContent = 'Last updated: ' + secondsSinceUpdate + 's ago';
+  else el.textContent = 'Last updated: ' + Math.floor(secondsSinceUpdate/60) + 'm ago';
+}, 1000);
+
+// ── CHART DEFAULTS ─────────────────────────────────────────
+Chart.defaults.color       = '#4a5168';
+Chart.defaults.font.family = "'DM Sans', system-ui, sans-serif";
+Chart.defaults.font.size   = 11;
+var GRID = { color:'rgba(255,255,255,0.04)', drawBorder:false };
+var charts = {};
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+// ── KPI ────────────────────────────────────────────────────
+function flashEl(id) {
+  var el = document.getElementById(id);
+  el.classList.remove('kpi-flash');
+  void el.offsetWidth;
+  el.classList.add('kpi-flash');
+}
+
+function updateKPIs(posts) {
+  var prevPosts = document.getElementById('kpi-posts').textContent;
+  var newPosts  = String(posts.length);
+  if (prevPosts !== newPosts) flashEl('kpi-posts');
+  document.getElementById('kpi-posts').textContent      = newPosts;
+  document.getElementById('kpi-engagement').textContent = avgField(posts,'engagement_rate').toFixed(2) + '%';
+  document.getElementById('kpi-reach').textContent      = fmtNum(sumField(posts,'reach'));
+  document.getElementById('kpi-likes').textContent      = fmtNum(sumField(posts,'likes'));
+  document.getElementById('kpi-comments').textContent   = fmtNum(sumField(posts,'comments'));
+}
+
+// ── PLATFORM CARDS ─────────────────────────────────────────
+function updatePlatformCards(posts) {
+  var grid = document.getElementById('platform-grid');
+  grid.innerHTML = '';
+  var seen = {};
+  var pls  = [];
+  posts.forEach(function(p) { if (!seen[p.platform]) { seen[p.platform]=true; pls.push(p.platform); } });
+  var maxER = 0;
+  pls.forEach(function(pl) {
+    var er = avgField(posts.filter(function(p){ return p.platform===pl; }), 'engagement_rate');
+    if (er > maxER) maxER = er;
+  });
+  pls.forEach(function(pl) {
+    var ps    = posts.filter(function(p){ return p.platform===pl; });
+    var er    = avgField(ps, 'engagement_rate');
+    var color = PLATFORM_COLORS[pl];
+    var pct   = Math.round((er/maxER)*100);
+    grid.innerHTML += '<div class="platform-card">' +
+      '<div class="platform-card-header">' +
+        '<div class="platform-name">' +
+          '<div class="platform-dot" style="background:' + color + ';box-shadow:0 0 6px ' + color + '80;"></div>' +
+          pl +
+        '</div>' +
+        '<span style="font-size:0.68rem;color:var(--text-muted);">' + ps.length + ' posts</span>' +
+      '</div>' +
+      '<div class="platform-er" style="color:' + color + ';">' + er.toFixed(2) + '%</div>' +
+      '<div class="platform-er-label">Avg Engagement Rate</div>' +
+      '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + color + ';"></div></div>' +
+    '</div>';
+  });
+}
+
+// ── CHART: TIMELINE ────────────────────────────────────────
+function drawTimeline(posts) {
+  destroyChart('tl');
+  var seen = {}; var pls = [];
+  posts.forEach(function(p){ if(!seen[p.platform]){seen[p.platform]=true;pls.push(p.platform);} });
+  var datasets = pls.map(function(pl) {
+    var color = PLATFORM_COLORS[pl];
+    return {
+      label: pl,
+      data: MONTHS_SHORT.map(function(_,i) {
+        var ps = posts.filter(function(p){ return p.platform===pl && p.month_num===i+1; });
+        return ps.length ? parseFloat(avgField(ps,'engagement_rate').toFixed(2)) : null;
+      }),
+      borderColor: color, backgroundColor: color + '18',
+      fill: false, tension: 0.35, pointRadius: 2.5, pointHoverRadius: 5, borderWidth: 1.8
+    };
+  });
+  charts['tl'] = new Chart(document.getElementById('chartTimeline').getContext('2d'), {
+    type:'line',
+    data:{ labels: MONTHS_SHORT, datasets: datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{ position:'bottom', labels:{ boxWidth:8, padding:14, color:'#4a5168', usePointStyle:true }}},
+      scales:{
+        x:{ grid:GRID, ticks:{ color:'#4a5168' }},
+        y:{ grid:GRID, ticks:{ color:'#4a5168', callback:function(v){ return v+'%'; } }}
+      }
+    }
+  });
+}
+
+// ── CHART: DONUT ───────────────────────────────────────────
+function drawDonut(posts) {
+  destroyChart('dn');
+  var pls = PLATFORMS.filter(function(pl){ return posts.some(function(p){ return p.platform===pl; }); });
+  charts['dn'] = new Chart(document.getElementById('chartDonut').getContext('2d'), {
+    type:'doughnut',
+    data:{
+      labels: pls,
+      datasets:[{
+        data: pls.map(function(pl){ return posts.filter(function(p){ return p.platform===pl; }).length; }),
+        backgroundColor: pls.map(function(pl){ return PLATFORM_COLORS[pl]+'cc'; }),
+        borderColor:'#181b26', borderWidth:3, hoverOffset:6
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'70%',
+      plugins:{
+        legend:{ position:'bottom', labels:{ boxWidth:8, padding:14, color:'#4a5168', usePointStyle:true }},
+        tooltip:{ callbacks:{ label:function(ctx){ return ' ' + ctx.label + ': ' + ctx.parsed + ' posts'; } }}
+      }
+    }
+  });
+}
+
+// ── CHART: CONTENT TYPE ────────────────────────────────────
+function drawContentType(posts) {
+  destroyChart('ct');
+  var seen = {}; var types = [];
+  posts.forEach(function(p){ if(!seen[p.content_type]){seen[p.content_type]=true;types.push(p.content_type);} });
+  types.sort();
+  var gc = ['#2dd4bf','#818cf8','#fb7185','#60a5fa','#a3e635','#f59e0b'];
+  charts['ct'] = new Chart(document.getElementById('chartContentType').getContext('2d'), {
+    type:'bar',
+    data:{
+      labels: types,
+      datasets:[{
+        label:'Avg ER %',
+        data: types.map(function(t){ return parseFloat(avgField(posts.filter(function(p){ return p.content_type===t; }),'engagement_rate').toFixed(2)); }),
+        backgroundColor: types.map(function(_,i){ return gc[i%gc.length]+'55'; }),
+        borderColor:     types.map(function(_,i){ return gc[i%gc.length]; }),
+        borderWidth:1, borderRadius:5
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{ legend:{ display:false }},
+      scales:{
+        x:{ grid:GRID, ticks:{ callback:function(v){ return v+'%'; }, color:'#4a5168' }},
+        y:{ grid:{ display:false }, ticks:{ color:'#4a5168' }}
+      }
+    }
+  });
+}
+
+// ── CHART: DAY OF WEEK ─────────────────────────────────────
+function drawDayOfWeek(posts) {
+  destroyChart('dw');
+  var data = DAYS.map(function(d) {
+    var ps = posts.filter(function(p){ return p.day_of_week===d; });
+    return ps.length ? parseFloat(avgField(ps,'engagement_rate').toFixed(2)) : 0;
+  });
+  var maxV = Math.max.apply(null, data);
+  var cols = data.map(function(v) {
+    var t = v/maxV;
+    return t>0.8?'#2dd4bf':t>0.6?'#5eead4':t>0.4?'#99f6e4':t>0.2?'#ccfbf1':'#f0fdfa';
+  });
+  charts['dw'] = new Chart(document.getElementById('chartDayOfWeek').getContext('2d'), {
+    type:'bar',
+    data:{
+      labels: DAYS.map(function(d){ return d.slice(0,3); }),
+      datasets:[{ label:'Avg ER %', data:data, backgroundColor:cols, borderRadius:5, borderWidth:0 }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false }},
+      scales:{
+        x:{ grid:{ display:false }, ticks:{ color:'#4a5168' }},
+        y:{ grid:GRID, ticks:{ callback:function(v){ return v+'%'; }, color:'#4a5168' }}
+      }
+    }
+  });
+}
+
+// ── CHART: CATEGORY ────────────────────────────────────────
+function drawCategory(posts) {
+  destroyChart('cat');
+  var seen = {}; var cats = [];
+  posts.forEach(function(p){ if(!seen[p.category]){seen[p.category]=true;cats.push(p.category);} });
+  cats.sort();
+  var cc = ['#fb7185','#818cf8','#2dd4bf','#a3e635','#f59e0b','#60a5fa'];
+  charts['cat'] = new Chart(document.getElementById('chartCategory').getContext('2d'), {
+    type:'bar',
+    data:{
+      labels: cats,
+      datasets:[{
+        label:'Avg ER %',
+        data: cats.map(function(c){ return parseFloat(avgField(posts.filter(function(p){ return p.category===c; }),'engagement_rate').toFixed(2)); }),
+        backgroundColor: cc.map(function(c){ return c+'55'; }),
+        borderColor: cc, borderWidth:1, borderRadius:6
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false }},
+      scales:{
+        x:{ grid:{ display:false }, ticks:{ color:'#4a5168' }},
+        y:{ grid:GRID, ticks:{ callback:function(v){ return v+'%'; }, color:'#4a5168' }}
+      }
+    }
+  });
+}
+
+// ── TOP POSTS TABLE ────────────────────────────────────────
+function updateTopPosts(posts) {
+  var top = posts.slice().sort(function(a,b){ return b.engagement_rate - a.engagement_rate; }).slice(0,10);
+  document.getElementById('top-posts-tbody').innerHTML = top.map(function(p, i) {
+    var cls = p.engagement_rate >= 10 ? 'er-high' : p.engagement_rate >= 5 ? 'er-mid' : 'er-low';
+    return '<tr>' +
+      '<td>' + (i+1) + '</td>' +
+      '<td style="font-family:\'DM Mono\',monospace;font-size:0.75rem;">' + p.post_id + '</td>' +
+      '<td><span style="color:' + PLATFORM_COLORS[p.platform] + ';font-weight:600;">' + p.platform + '</span></td>' +
+      '<td>' + p.content_type + '</td>' +
+      '<td>' + p.category + '</td>' +
+      '<td>' + p.day_of_week.slice(0,3) + '</td>' +
+      '<td style="font-family:\'DM Mono\',monospace;">' + fmtNum(p.reach) + '</td>' +
+      '<td style="font-family:\'DM Mono\',monospace;">' + fmtNum(p.likes) + '</td>' +
+      '<td style="font-family:\'DM Mono\',monospace;">' + fmtNum(p.comments) + '</td>' +
+      '<td><span class="er-pill ' + cls + '">' + p.engagement_rate.toFixed(2) + '%</span></td>' +
+    '</tr>';
+  }).join('');
+}
+
+// ── SIMULATED LIVE DATA ────────────────────────────────────
+var liveRng = mulberry32((Date.now() % 0xffffffff) | 0);
+setInterval(function() {
+  var idx  = Math.floor(liveRng() * ALL_POSTS.length);
+  var post = ALL_POSTS[idx];
+  var delta = (liveRng() - 0.4) * 6;
+  post.likes    = Math.max(0, Math.round(post.likes + delta));
+  post.comments = Math.max(0, Math.round(post.comments + (liveRng() > 0.85 ? 1 : 0)));
+  post.total_eng = post.likes + post.comments + post.shares + post.saves;
+  post.engagement_rate = parseFloat(((post.total_eng / post.followers_at_post) * 100).toFixed(2));
+  updateKPIs(FILTERED);
+  setLastUpdated();
+}, 8000);
+
+// ── FILTER ────────────────────────────────────────────────
+function filterPlatform(pl) {
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  var btnId = pl === 'All' ? 'btn-all' : 'btn-' + pl.toLowerCase();
+  document.getElementById(btnId).classList.add('active');
+  FILTERED = pl === 'All' ? ALL_POSTS.slice() : ALL_POSTS.filter(function(p){ return p.platform===pl; });
+  renderAll(FILTERED);
+  setLastUpdated();
+}
+
+// ── RENDER ALL ────────────────────────────────────────────
+function renderAll(posts) {
+  updateKPIs(posts);
+  updatePlatformCards(posts);
+  drawTimeline(posts);
+  drawDonut(posts);
+  drawContentType(posts);
+  drawDayOfWeek(posts);
+  drawCategory(posts);
+  updateTopPosts(posts);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  renderAll(ALL_POSTS);
+  setLastUpdated();
+});
+</script>
+</body>
+</html>
